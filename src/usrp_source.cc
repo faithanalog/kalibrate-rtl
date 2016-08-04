@@ -222,7 +222,6 @@ int usrp_source::fill(unsigned int num_samples, unsigned int *overrun_i) {
 	int n_read;
 
 	while((m_cb->data_available() < num_samples) && (m_cb->space_available() > 0)) {
-
 		// read one usb packet from the usrp
 		pthread_mutex_lock(&m_u_mutex);
 

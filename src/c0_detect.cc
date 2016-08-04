@@ -55,13 +55,14 @@ static double vectornorm2(const complex *v, const unsigned int len) {
 }
 
 
-int c0_detect(usrp_source *u, int bi) {
+int c0_detect(usrp_source *u, int bi, double min_power, unsigned long int notfound_max) {
 
 #define GSM_RATE (1625000.0 / 6.0)
-#define  NOTFOUND_MAX 10
+#define  NOTFOUND_MAX 1
 
 	int i, chan_count;
-	unsigned int overruns, b_len, frames_len, found_count, notfound_count, r;
+	unsigned int overruns, b_len, frames_len, found_count, r;
+    unsigned long notfound_count;
 	float offset, spower[BUFSIZ];
 	double freq, sps, n, power[BUFSIZ], sum = 0, a;
 	complex *b;
@@ -122,6 +123,8 @@ int c0_detect(usrp_source *u, int bi) {
 
 	// average the lowest %60
 	a = avg(spower, chan_count - 4 * chan_count / 10, 0);
+    if (a < min_power)
+        a = min_power;
 
 	if(g_verbosity > 0) {
 		fprintf(stderr, "channel detect threshold: %lf\n", a);
@@ -165,7 +168,7 @@ int c0_detect(usrp_source *u, int bi) {
 		} else {
 			// not found
 			notfound_count += 1;
-			if(notfound_count >= NOTFOUND_MAX) {
+			if(notfound_count >= notfound_max) {
 				notfound_count = 0;
 				i = next_chan(i, bi);
 			}

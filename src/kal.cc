@@ -94,6 +94,8 @@ void usage(char *prog) {
 	printf("\t-e\tinitial frequency error in ppm\n");
 	printf("\t-v\tverbose\n");
 	printf("\t-D\tenable debug messages\n");
+    printf("\t-p\tset minimum power for channels during band scans\n");
+    printf("\t-t\tset number of FCCH tests to execute per channel during band scans\n");
 	printf("\t-h\thelp\n");
 	exit(-1);
 }
@@ -108,10 +110,19 @@ int main(int argc, char **argv) {
 	long int fpga_master_clock_freq = 52000000;
 	float gain = 0;
 	double freq = -1.0, fd;
+    double min_power = 0.0;
+    long int notfound_max = 10;
 	usrp_source *u;
 
-	while((c = getopt(argc, argv, "f:c:s:b:R:A:g:e:d:vDh?")) != EOF) {
+	while((c = getopt(argc, argv, "p:t:f:c:s:b:R:A:g:e:d:vDh?")) != EOF) {
 		switch(c) {
+            case 'p':
+                //Any channel below this power level won't be checked for FCCH
+                min_power = strtod(optarg, 0);
+                break;
+            case 't':
+                notfound_max = strtoul(optarg, 0, 0);
+                break;
 			case 'f':
 				freq = strtod(optarg, 0);
 				break;
@@ -297,5 +308,5 @@ int main(int argc, char **argv) {
 	fprintf(stderr, "%s: Scanning for %s base stations.\n",
 	   basename(argv[0]), bi_to_str(bi));
 
-	return c0_detect(u, bi);
+	return c0_detect(u, bi, min_power, notfound_max);
 }
